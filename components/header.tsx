@@ -11,7 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Plus, Upload, Radio, PenSquare } from 'lucide-react';
 
 export function Header() {
     const { user, logout } = useAuth();
@@ -26,26 +26,53 @@ export function Header() {
 
                 <div className="flex items-center gap-4">
                     {user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user.avatar} alt={user.name || user.email} />
-                                        <AvatarFallback>{(user.name?.[0] || user.email?.[0] || 'U').toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                                    <span>Dashboard</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={logout}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex items-center gap-4">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-5 w-5" />
+                                        <span className="hidden md:inline">Create</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => router.push('/video/upload')}>
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        <span>Upload Video</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <Radio className="mr-2 h-4 w-4" />
+                                        <span>Go Live</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                        <PenSquare className="mr-2 h-4 w-4" />
+                                        <span>Create Post</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={user.avatar} alt={user.name || user.email} />
+                                            <AvatarFallback>{(user.name?.[0] || user.email?.[0] || 'U').toUpperCase()}</AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                    <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        <span>Dashboard</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={logout}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Log out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     ) : (
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>

@@ -1,21 +1,53 @@
-export interface Video {
+export interface User {
   id: string;
-  title: string;
+  name: string;
+  avatar: string;
+}
+
+export interface VideoSummary {
+  id: string;
+  title: string | null;
+  durationSeconds: number | null;
+  createdAt: string;
+  updatedAt: string;
+  thumbnail: string;
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+}
+
+export interface Video extends VideoSummary {
   description: string;
-  createdAt: string; // ISO Date string
-  updatedAt: string; // ISO Date string
-  url: string;       // HLS Master Playlist URL (.m3u8)
-  thumbnail: string; // Thumbnail Image URL (.jpg)
+  sizeBytes: number;
+  url: string;
+  user: User;
 }
 
 export interface PaginationMeta {
-  total: number;      // Total number of videos available
-  page: number;       // Current page number
-  limit: number;      // Items per page
-  totalPages: number; // Total number of pages
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface ListVideoResponse {
-  data: Video[];
+  data: VideoSummary[];
   meta: PaginationMeta;
+}
+
+export interface MyVideo {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  url: string;
+  visibility: 'private' | 'public';
+  encodingStatus: 'pending' | 'processing' | 'completed' | 'failed';
+  sizeBytes: number;
+  durationSeconds: number;
+  createdAt: string;
+  updatedAt: string;
+  views: number;
 }

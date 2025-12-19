@@ -8,11 +8,11 @@ import 'videojs-contrib-quality-menu';
 import Player from 'video.js/dist/types/player';
 
 interface VideoPlayerProps {
-    url: string;
-    thumbnail?: string;
+    src: string;
+    poster?: string;
 }
 
-export function VideoPlayer({ url, thumbnail }: VideoPlayerProps) {
+export function VideoPlayer({ src, poster }: VideoPlayerProps) {
     const videoRef = useRef<HTMLDivElement | null>(null);
     const playerRef = useRef<Player | null>(null);
 
@@ -28,7 +28,7 @@ export function VideoPlayer({ url, thumbnail }: VideoPlayerProps) {
             const player = playerRef.current = videojs(videoElement, {
                 controls: true,
                 autoplay: true,
-                poster: thumbnail,
+                poster: poster,
                 fluid: true, // Make it responsive
                 html5: {
                     vhs: {
@@ -51,7 +51,7 @@ export function VideoPlayer({ url, thumbnail }: VideoPlayerProps) {
                         "fullscreenToggle",
                     ],
                 },
-                sources: [{ src: url, type: "application/x-mpegURL" }],
+                sources: [{ src: src, type: "application/x-mpegURL" }],
             }, () => {
                 videojs.log('player is ready');
                 // @ts-ignore
@@ -63,9 +63,9 @@ export function VideoPlayer({ url, thumbnail }: VideoPlayerProps) {
         } else {
             // Update player
             const player = playerRef.current;
-            player.src({ src: url, type: "application/x-mpegURL" });
-            if (thumbnail) {
-                player.poster(thumbnail);
+            player.src({ src: src, type: "application/x-mpegURL" });
+            if (poster) {
+                player.poster(poster);
             }
         }
 
@@ -77,7 +77,7 @@ export function VideoPlayer({ url, thumbnail }: VideoPlayerProps) {
                 playerRef.current = null;
             }
         };
-    }, [url, thumbnail]);
+    }, [src, poster]);
 
     return (
         <div data-vjs-player className="w-full aspect-video rounded-xl overflow-hidden shadow-lg">

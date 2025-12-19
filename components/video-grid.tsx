@@ -1,8 +1,8 @@
-import { Video } from '@/types/video';
+import { VideoSummary } from '@/types/video';
 import { VideoCard } from './video-card';
 
 interface VideoGridProps {
-    videos: Video[];
+    videos: VideoSummary[];
 }
 
 export function VideoGrid({ videos }: VideoGridProps) {
