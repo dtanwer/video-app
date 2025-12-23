@@ -29,7 +29,8 @@ export function VideoPlayer({ src, poster }: VideoPlayerProps) {
                 controls: true,
                 autoplay: true,
                 poster: poster,
-                fluid: true, // Make it responsive
+                fill: true, // Fill the container
+                fluid: false, // Disable fluid to respect container size
                 html5: {
                     vhs: {
                         maxBufferLength: 30,

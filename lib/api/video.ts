@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ListVideoResponse, Video, MyVideo } from '@/types/video';
 import { apiClient } from '@/lib/auth';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export const fetchVideos = async (page: number = 1, limit: number = 10, search?: string, tags?: string[]): Promise<ListVideoResponse> => {
     try {
@@ -29,6 +29,23 @@ export const fetchVideoById = async (id: string): Promise<Video> => {
         return response.data;
     } catch (error) {
         console.error('Error fetching video details:', error);
+        throw error;
+    }
+};
+
+export interface LiveStreamResponse {
+    videoId: string;
+    streamKey: string;
+    rtmpUrl: string;
+    playbackUrl: string;
+}
+
+export const createLiveStream = async (data: { title?: string; description?: string }): Promise<LiveStreamResponse> => {
+    try {
+        const response = await apiClient.post<LiveStreamResponse>('/videos/live', data);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating live stream:', error);
         throw error;
     }
 };

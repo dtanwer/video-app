@@ -42,7 +42,7 @@ export function Header() {
                                         <Upload className="mr-2 h-4 w-4" />
                                         <span>Upload Video</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => router.push('/video/live')}>
                                         <Radio className="mr-2 h-4 w-4" />
                                         <span>Go Live</span>
                                     </DropdownMenuItem>

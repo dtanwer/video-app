@@ -16,6 +16,7 @@ export interface VideoSummary {
     name: string;
     avatar: string;
   };
+  isLive?: boolean;
 }
 
 export interface Video extends VideoSummary {
@@ -50,4 +51,52 @@ export interface MyVideo {
   createdAt: string;
   updatedAt: string;
   views: number;
+}
+
+export interface StreamQuality {
+  resolution: string;
+  url: string;
+}
+
+export interface Stream {
+  streamKey: string;
+  startTime: string;
+  duration: number;
+  hlsUrl: string;
+  isActive: boolean;
+}
+
+export interface StreamInfo extends Stream {
+  qualities: StreamQuality[];
+}
+
+export interface ActiveStreamsResponse {
+  success: boolean;
+  count: number;
+  streams: Stream[];
+}
+
+export interface StreamInfoResponse {
+  success: boolean;
+  stream: StreamInfo;
+}
+
+export interface StreamActionResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface HealthCheckResponse {
+  success: boolean;
+  status: string;
+  rtmpServer: {
+    running: boolean;
+    port: number;
+  };
+  httpServer: {
+    running: boolean;
+    port: number;
+  };
+  activeStreams: number;
+  uptime: number;
 }

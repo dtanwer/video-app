@@ -43,6 +43,11 @@ export function VideoCard({ video, className }: VideoCardProps) {
                             {Math.floor(video.durationSeconds / 60)}:{String(video.durationSeconds % 60).padStart(2, '0')}
                         </div>
                     )}
+                    {video.isLive && (
+                        <div className="absolute top-2 left-2 rounded bg-red-600 px-2 py-0.5 text-xs font-bold text-white animate-pulse">
+                            LIVE
+                        </div>
+                    )}
                 </div>
                 <div className="p-4">
                     <div className="flex gap-3">
