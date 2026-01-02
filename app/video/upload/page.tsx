@@ -65,14 +65,14 @@ export default function VideoUploadPage() {
 
         try {
             const token = localStorage.getItem('accessToken');
-            await axios.post('http://localhost:8080/video', formData, {
+            const response = await axios.post('http://localhost:8080/video', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`,
                 },
             });
             toast.success('Video uploaded successfully');
-            router.push('/');
+            router.push(`/video/${response.data.id}`);
         } catch (error) {
             console.error('Upload error:', error);
             toast.error('Failed to upload video. Please try again.');

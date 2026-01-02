@@ -37,7 +37,7 @@ export interface LiveStreamResponse {
     videoId: string;
     streamKey: string;
     rtmpUrl: string;
-    playbackUrl: string;
+    playbackUrl: string | null;
 }
 
 export const createLiveStream = async (data: { title?: string; description?: string }): Promise<LiveStreamResponse> => {

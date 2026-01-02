@@ -19,11 +19,36 @@ export default function VideoPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let intervalId: NodeJS.Timeout;
+
         const loadVideo = async () => {
             try {
-                setLoading(true);
+                // Only set loading on first fetch
+                if (!video) setLoading(true);
+
                 const data = await fetchVideoById(id);
                 setVideo(data);
+
+                // If processing, poll every 3 seconds
+                if (data.status === 'pending' || data.status === 'processing') {
+                    if (!intervalId) {
+                        intervalId = setInterval(async () => {
+                            try {
+                                const updatedData = await fetchVideoById(id);
+                                setVideo(updatedData);
+
+                                // Stop polling if completed or failed
+                                if (updatedData.status === 'completed' || updatedData.status === 'failed') {
+                                    clearInterval(intervalId);
+                                }
+                            } catch (err) {
+                                // Ignore polling errors
+                            }
+                        }, 3000);
+                    }
+                } else if (intervalId) {
+                    clearInterval(intervalId);
+                }
             } catch (err) {
                 setError('Failed to load video');
                 console.error(err);
@@ -35,6 +60,10 @@ export default function VideoPage() {
         if (id) {
             loadVideo();
         }
+
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
     }, [id]);
 
     if (loading) {
@@ -64,10 +93,37 @@ export default function VideoPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
                     <div className="rounded-lg overflow-hidden border bg-black">
-                        <VideoPlayer
-                            src={video.url}
-                            poster={video.thumbnail}
-                        />
+                        {video.status === 'completed' ? (
+                            <VideoPlayer
+                                src={video.url}
+                                poster={video.thumbnail}
+                            />
+                        ) : video.status === 'failed' ? (
+                            <div className="aspect-video flex flex-col items-center justify-center text-destructive p-6 text-center">
+                                <AlertCircle className="h-12 w-12 mb-4" />
+                                <h3 className="text-xl font-semibold mb-2">Processing Failed</h3>
+                                <p className="text-sm text-muted-foreground max-w-md">
+                                    We encountered an error while processing your video. Please try uploading it again.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="aspect-video flex flex-col items-center justify-center text-center p-6 bg-muted/10">
+                                <div className="relative mb-6">
+                                    <div className="absolute inset-0 animate-ping rounded-full bg-primary/20"></div>
+                                    <div className="relative bg-background p-4 rounded-full border shadow-sm">
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Processing Video</h3>
+                                <p className="text-sm text-muted-foreground max-w-md mb-6">
+                                    We're preparing your video for playback. This may take a few minutes depending on the file size.
+                                </p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                                    <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+                                    {video.status === 'pending' ? 'Pending in queue...' : 'Encoding in progress...'}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-4">

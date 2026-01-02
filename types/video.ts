@@ -24,6 +24,7 @@ export interface Video extends VideoSummary {
   sizeBytes: number;
   url: string;
   user: User;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 export interface PaginationMeta {

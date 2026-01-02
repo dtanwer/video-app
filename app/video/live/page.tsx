@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createLiveStream, LiveStreamResponse } from '@/lib/api/video';
+import { createLiveStream, LiveStreamResponse, fetchVideoById } from '@/lib/api/video';
 import { stopStream } from '@/lib/api/stream';
 import { VideoPlayer } from '@/components/video-player';
 import { Copy, Check, Radio, AlertCircle, StopCircle } from 'lucide-react';
@@ -36,7 +36,16 @@ export default function GoLivePage() {
         let intervalId: NodeJS.Timeout;
 
         const checkStream = async () => {
-            if (streamData?.playbackUrl && !isStreamReady) {
+            if (streamData?.videoId && !streamData.playbackUrl) {
+                try {
+                    const video = await fetchVideoById(streamData.videoId);
+                    if (video.url) {
+                        setStreamData(prev => prev ? { ...prev, playbackUrl: video.url } : null);
+                    }
+                } catch (e) {
+                    // Ignore error while polling
+                }
+            } else if (streamData?.playbackUrl && !isStreamReady) {
                 try {
                     const response = await fetch(streamData.playbackUrl, { method: 'HEAD' });
                     if (response.ok) {
@@ -48,7 +57,7 @@ export default function GoLivePage() {
             }
         };
 
-        if (streamData && !isStreamReady) {
+        if (streamData && (!streamData.playbackUrl || !isStreamReady)) {
             checkStream(); // Check immediately
             intervalId = setInterval(checkStream, 3000); // Check every 3 seconds
         }
@@ -110,7 +119,13 @@ export default function GoLivePage() {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
                         {streamData ? (
-                            isStreamReady ? (
+                            !streamData.playbackUrl ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 animate-pulse">
+                                    <Radio className="h-16 w-16 mb-4 opacity-50" />
+                                    <p className="text-lg">Processing stream...</p>
+                                    <p className="text-sm">Please wait while we prepare your stream</p>
+                                </div>
+                            ) : isStreamReady ? (
                                 <VideoPlayer
                                     src={streamData.playbackUrl}
                                     poster="/placeholder-stream.jpg"
