@@ -9,7 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Plus, Lock } from 'lucide-react';
+import { AddVideoDialog } from '@/components/add-video-dialog';
+import { PaymentModal } from '@/components/payment-modal';
+import { TransactionType } from '@/lib/api/payment';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
 
 export default function VideoPage() {
     const params = useParams();
@@ -17,6 +22,9 @@ export default function VideoPage() {
     const [video, setVideo] = useState<Video | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showPayment, setShowPayment] = useState(false);
+    const { user } = useAuth();
+    const [hasAccess, setHasAccess] = useState(false);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
@@ -28,6 +36,27 @@ export default function VideoPage() {
 
                 const data = await fetchVideoById(id);
                 setVideo(data);
+
+                // Check access
+                if (data.isPaid || data.isSubscriptionOnly) {
+                    // Logic to check if user has purchased or has subscription
+                    // For now, we'll assume no access if it's paid/sub-only and rely on backend/user state
+                    // In a real app, we'd check purchase history or subscription status against video requirements
+
+                    // Simple check: if user is owner, they have access
+                    if (user && data.user.id === user.id) {
+                        setHasAccess(true);
+                    } else if (data.isSubscriptionOnly && user?.subscriptionPlan !== 'FREE') {
+                        setHasAccess(true);
+                    } else {
+                        // If paid, we need to check if purchased. 
+                        // This info should ideally come from backend (e.g. video.hasAccess)
+                        // For this demo, we'll default to false for paid videos if not owner
+                        setHasAccess(false);
+                    }
+                } else {
+                    setHasAccess(true);
+                }
 
                 // If processing, poll every 3 seconds
                 if (data.status === 'pending' || data.status === 'processing') {
@@ -92,10 +121,30 @@ export default function VideoPage() {
         <div className="container py-6 max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
-                    <div className="rounded-lg overflow-hidden border bg-black">
+                    <div className="rounded-lg overflow-hidden border bg-black relative">
+                        {!hasAccess && (video.isPaid || video.isSubscriptionOnly) ? (
+                            <div className="absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center text-center p-6">
+                                <Lock className="w-16 h-16 text-primary mb-4" />
+                                <h2 className="text-2xl font-bold text-white mb-2">
+                                    {video.isSubscriptionOnly ? 'Premium Content' : 'Paid Content'}
+                                </h2>
+                                <p className="text-gray-300 max-w-md mb-6">
+                                    {video.isSubscriptionOnly
+                                        ? 'This video is available only for premium subscribers.'
+                                        : `This video is available for purchase for $${video.price}.`}
+                                </p>
+                                <Button
+                                    size="lg"
+                                    onClick={() => setShowPayment(true)}
+                                >
+                                    {video.isSubscriptionOnly ? 'Upgrade to Premium' : `Unlock for $${video.price}`}
+                                </Button>
+                            </div>
+                        ) : null}
+
                         {video.status === 'completed' ? (
                             <VideoPlayer
-                                src={video.url}
+                                src={hasAccess ? video.url : ''} // Don't load URL if no access
                                 poster={video.thumbnail}
                             />
                         ) : video.status === 'failed' ? (
@@ -142,6 +191,7 @@ export default function VideoPage() {
                                     </p>
                                 </div>
                             </div>
+                            <AddVideoDialog videoId={video.id} />
                         </div>
 
                         <div className="bg-muted/30 p-4 rounded-lg">
@@ -164,6 +214,29 @@ export default function VideoPage() {
                     </Card>
                 </div>
             </div>
+            {video && (
+                <PaymentModal
+                    open={showPayment}
+                    onOpenChange={setShowPayment}
+                    title={video.isSubscriptionOnly ? 'Upgrade to Premium' : `Unlock ${video.title}`}
+                    description={
+                        video.isSubscriptionOnly
+                            ? 'Get unlimited access to all premium content.'
+                            : 'Purchase this video to watch it anytime.'
+                    }
+                    price={video.isSubscriptionOnly ? 19.99 : video.price}
+                    type={
+                        video.isSubscriptionOnly
+                            ? TransactionType.SUBSCRIPTION_PURCHASE
+                            : TransactionType.VIDEO_PURCHASE
+                    }
+                    referenceId={video.isSubscriptionOnly ? 'PREMIUM' : video.id}
+                    onSuccess={() => {
+                        setHasAccess(true);
+                        setShowPayment(false);
+                    }}
+                />
+            )}
         </div>
     );
 }

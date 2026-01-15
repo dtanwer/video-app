@@ -15,6 +15,9 @@ export interface User {
   isBanned: boolean;
   createdAt: string;
   updatedAt: string;
+  subscriptionPlan: 'FREE' | 'BASIC' | 'PREMIUM';
+  subscriptionExpiry?: string;
+  razorpayCustomerId?: string;
 }
 
 export interface AuthTokens {

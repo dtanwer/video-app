@@ -25,6 +25,11 @@ export interface Video extends VideoSummary {
   url: string;
   user: User;
   status: 'pending' | 'processing' | 'completed' | 'failed';
+  isPaid: boolean;
+  price: number;
+  isSubscriptionOnly: boolean;
+  previewDuration?: number;
+  isPublished: boolean;
 }
 
 export interface PaginationMeta {
