@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { PlaySquare, Lock, Unlock } from 'lucide-react';
 import { Playlist } from '@/lib/api/playlist';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,8 +32,17 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="aspect-video bg-muted rounded-md flex items-center justify-center mb-4">
-                        <PlaySquare className="w-12 h-12 text-muted-foreground/50" />
+                    <div className="aspect-video bg-muted rounded-md flex items-center justify-center mb-4 relative overflow-hidden">
+                        {playlist.image ? (
+                            <Image
+                                src={playlist.image}
+                                alt={playlist.title}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <PlaySquare className="w-12 h-12 text-muted-foreground/50" />
+                        )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                         {playlist.description || 'No description'}

@@ -93,7 +93,7 @@ export function SubscriptionPlans() {
                     title={`${selectedPlan.name} Subscription`}
                     description={`Monthly subscription for ${selectedPlan.name} plan`}
                     price={selectedPlan.price}
-                    type={TransactionType.SUBSCRIPTION_PURCHASE}
+                    type={TransactionType.SUBSCRIPTION}
                     referenceId={selectedPlan.type}
                     onSuccess={() => {
                         // Refresh user profile or redirect

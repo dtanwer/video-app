@@ -36,6 +36,7 @@ const formSchema = z.object({
     description: z.string().optional(),
     isPaid: z.boolean().default(false),
     price: z.coerce.number().min(0).default(0),
+    image: z.any().optional(),
 });
 
 interface CreatePlaylistDialogProps {
@@ -60,6 +61,7 @@ export function CreatePlaylistDialog({ onSuccess, open: controlledOpen, onOpenCh
             description: '',
             isPaid: false,
             price: 0,
+            image: undefined,
         },
     });
 
@@ -68,7 +70,16 @@ export function CreatePlaylistDialog({ onSuccess, open: controlledOpen, onOpenCh
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
             setIsLoading(true);
-            await playlistApi.create(values);
+            const formData = new FormData();
+            formData.append('title', values.title);
+            if (values.description) formData.append('description', values.description);
+            formData.append('isPaid', String(values.isPaid));
+            formData.append('price', String(values.price));
+            if (values.image?.[0]) {
+                formData.append('image', values.image[0]);
+            }
+
+            await playlistApi.create(formData);
             toast.success('Playlist created successfully');
             setOpen?.(false);
             form.reset();
@@ -127,6 +138,26 @@ export function CreatePlaylistDialog({ onSuccess, open: controlledOpen, onOpenCh
                                         <Textarea
                                             placeholder="Describe your playlist..."
                                             {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="image"
+                            render={({ field: { value, onChange, ...fieldProps } }) => (
+                                <FormItem>
+                                    <FormLabel>Cover Image</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...fieldProps}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(event) => {
+                                                onChange(event.target.files && event.target.files);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />

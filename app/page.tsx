@@ -4,34 +4,24 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoGrid } from '@/components/video-grid';
 import { fetchVideos } from '@/lib/api/video';
-import { Video } from '@/types/video';
+import { VideoSummary } from '@/types/video';
 import { Loader2, VideoOff } from 'lucide-react';
 import Link from 'next/link';
-
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { VideoSummary } from '@/types/video';
 import { fetchTags, Tag } from '@/lib/api/tags';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { useSearchParams } from 'next/navigation';
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const search = searchParams.get('search') || '';
+
   const [videos, setVideos] = useState<VideoSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   useEffect(() => {
     const loadTags = async () => {
@@ -50,7 +40,7 @@ export default function Home() {
       if (isNewSearch) {
         setLoading(true);
       }
-      const response = await fetchVideos(pageNum, 12, debouncedSearch, selectedTag ? [selectedTag] : undefined);
+      const response = await fetchVideos(pageNum, 12, search, selectedTag ? [selectedTag] : undefined);
       if (pageNum === 1) {
         setVideos(response.data);
       } else {
@@ -67,7 +57,7 @@ export default function Home() {
   useEffect(() => {
     setPage(1);
     loadVideos(1, true);
-  }, [debouncedSearch, selectedTag]);
+  }, [search, selectedTag]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -76,61 +66,61 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-background text-foreground">
-      {/* Header */}
-      <div className="container py-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search videos..."
-            className="pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max space-x-2 pb-4">
-            <Badge
-              variant={selectedTag === null ? "default" : "secondary"}
-              className="cursor-pointer hover:bg-primary/90"
-              onClick={() => setSelectedTag(null)}
-            >
-              All
-            </Badge>
-            {tags.map((tag) => (
+    <div className="min-h-screen bg-background">
+      {/* Filter Section */}
+      <div className="sticky top-16 z-40 bg-background border-b border-border py-4 shadow-sm">
+        <div className="container">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max space-x-2 px-1">
               <Badge
-                key={tag.id}
-                variant={selectedTag === tag.name ? "default" : "secondary"}
-                className="cursor-pointer hover:bg-primary/90"
-                onClick={() => setSelectedTag(selectedTag === tag.name ? null : tag.name)}
+                variant={selectedTag === null ? "default" : "outline"}
+                className={`cursor-pointer px-4 py-2 rounded-full transition-all ${selectedTag === null ? 'bg-primary hover:bg-primary/90' : 'hover:bg-white/10 border-white/10'}`}
+                onClick={() => setSelectedTag(null)}
               >
-                {tag.name}
+                All
               </Badge>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+              {tags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant={selectedTag === tag.name ? "default" : "outline"}
+                  className={`cursor-pointer px-4 py-2 rounded-full transition-all ${selectedTag === tag.name ? 'bg-primary hover:bg-primary/90' : 'hover:bg-white/10 border-white/10'}`}
+                  onClick={() => setSelectedTag(selectedTag === tag.name ? null : tag.name)}
+                >
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" className="hidden" />
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Main Content */}
-      <main className="container py-6">
+      <main className="container py-8">
         {loading && page === 1 ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
           </div>
         ) : (
           <>
             {videos.length > 0 ? (
-              <>
+              <div className="space-y-10">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {search ? `Results for "${search}"` : selectedTag ? `${selectedTag} Videos` : 'Trending Now'}
+                  </h2>
+                </div>
+
                 <VideoGrid videos={videos} />
 
                 {hasMore && (
-                  <div className="mt-8 flex justify-center">
+                  <div className="mt-12 flex justify-center">
                     <Button
                       variant="outline"
+                      size="lg"
                       onClick={handleLoadMore}
                       disabled={loading}
+                      className="rounded-full px-8 border-white/10 hover:bg-white/5"
                     >
                       {loading ? (
                         <>
@@ -138,22 +128,24 @@ export default function Home() {
                           Loading...
                         </>
                       ) : (
-                        'Load More'
+                        'Load More Videos'
                       )}
                     </Button>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="rounded-full bg-muted p-6 mb-4">
-                  <VideoOff className="h-10 w-10 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center py-32 text-center space-y-6">
+                <div className="rounded-full bg-white/5 p-8 ring-1 ring-white/10">
+                  <VideoOff className="h-12 w-12 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold">No videos available</h3>
-                <p className="text-muted-foreground mt-2 max-w-sm">
-                  There are no videos to display at the moment. Be the first to upload one!
-                </p>
-                <Button className="mt-6" asChild>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold">No videos found</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    We couldn't find any videos matching your criteria. Try adjusting your search or filters.
+                  </p>
+                </div>
+                <Button className="rounded-full" asChild>
                   <Link href="/video/upload">Upload Video</Link>
                 </Button>
               </div>

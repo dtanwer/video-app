@@ -17,6 +17,9 @@ export interface VideoSummary {
     avatar: string;
   };
   isLive?: boolean;
+  isPaid?: boolean;
+  price?: number;
+  isSubscriptionOnly?: boolean;
 }
 
 export interface Video extends VideoSummary {

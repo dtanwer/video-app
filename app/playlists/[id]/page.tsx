@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Loader2, Trash2, Play, Lock, Unlock, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { playlistApi, Playlist } from '@/lib/api/playlist';
 import { Button } from '@/components/ui/button';
@@ -112,8 +113,17 @@ export default function PlaylistDetailPage() {
             <div className="flex flex-col md:flex-row gap-8 mb-8">
                 {/* Playlist Info */}
                 <div className="w-full md:w-1/3 lg:w-1/4 space-y-4">
-                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                        <Play className="w-16 h-16 text-muted-foreground/50" />
+                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center relative overflow-hidden">
+                        {playlist.image ? (
+                            <Image
+                                src={playlist.image}
+                                alt={playlist.title}
+                                fill
+                                className="object-cover"
+                            />
+                        ) : (
+                            <Play className="w-16 h-16 text-muted-foreground/50" />
+                        )}
                     </div>
 
                     <div>

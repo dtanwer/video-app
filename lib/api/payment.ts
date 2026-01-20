@@ -3,14 +3,21 @@ import { apiClient } from '@/lib/auth';
 export enum TransactionType {
     VIDEO_PURCHASE = 'VIDEO_PURCHASE',
     PLAYLIST_PURCHASE = 'PLAYLIST_PURCHASE',
-    SUBSCRIPTION_PURCHASE = 'SUBSCRIPTION_PURCHASE',
+    SUBSCRIPTION = 'SUBSCRIPTION',
 }
 
-export interface CreateOrderResponse {
-    orderId: string;
+export interface RazorpayOrder {
+    id: string;
+    entity: string;
     amount: number;
+    amount_paid: number;
+    amount_due: number;
     currency: string;
-    key: string;
+    receipt: string;
+    status: string;
+    attempts: number;
+    notes: any[];
+    created_at: number;
 }
 
 export interface VerifyPaymentResponse {
@@ -19,8 +26,8 @@ export interface VerifyPaymentResponse {
 }
 
 export const paymentApi = {
-    createOrder: async (type: TransactionType, referenceId?: string): Promise<CreateOrderResponse> => {
-        const response = await apiClient.post<CreateOrderResponse>('/payments/create-order', {
+    createOrder: async (type: TransactionType, referenceId?: string): Promise<RazorpayOrder> => {
+        const response = await apiClient.post<RazorpayOrder>('/payments/create-order', {
             type,
             referenceId,
         });

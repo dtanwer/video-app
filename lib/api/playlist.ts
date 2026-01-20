@@ -11,6 +11,7 @@ export interface Playlist {
     videos: Video[];
     createdAt: string;
     updatedAt: string;
+    image?: string;
 }
 
 export interface CreatePlaylistDto {
@@ -18,6 +19,7 @@ export interface CreatePlaylistDto {
     description?: string;
     isPaid?: boolean;
     price?: number;
+    image?: File;
 }
 
 export interface UpdatePlaylistDto {
@@ -28,8 +30,10 @@ export interface UpdatePlaylistDto {
 }
 
 export const playlistApi = {
-    create: async (data: CreatePlaylistDto): Promise<Playlist> => {
-        const response = await apiClient.post<Playlist>('/playlists', data);
+    create: async (data: CreatePlaylistDto | FormData): Promise<Playlist> => {
+        const isFormData = data instanceof FormData;
+        const headers = isFormData ? { 'Content-Type': 'multipart/form-data' } : undefined;
+        const response = await apiClient.post<Playlist>('/playlists', data, { headers });
         return response.data;
     },
 

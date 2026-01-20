@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchVideoById } from '@/lib/api/video';
+import { fetchVideoById, getSignedUrl } from '@/lib/api/video';
+import { AxiosError } from 'axios';
 import { Video } from '@/types/video';
 import { VideoPlayer } from '@/components/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +26,7 @@ export default function VideoPage() {
     const [showPayment, setShowPayment] = useState(false);
     const { user } = useAuth();
     const [hasAccess, setHasAccess] = useState(false);
+    const [signedUrl, setSignedUrl] = useState<string | null>(null);
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
@@ -37,25 +39,22 @@ export default function VideoPage() {
                 const data = await fetchVideoById(id);
                 setVideo(data);
 
-                // Check access
-                if (data.isPaid || data.isSubscriptionOnly) {
-                    // Logic to check if user has purchased or has subscription
-                    // For now, we'll assume no access if it's paid/sub-only and rely on backend/user state
-                    // In a real app, we'd check purchase history or subscription status against video requirements
-
-                    // Simple check: if user is owner, they have access
-                    if (user && data.user.id === user.id) {
-                        setHasAccess(true);
-                    } else if (data.isSubscriptionOnly && user?.subscriptionPlan !== 'FREE') {
-                        setHasAccess(true);
-                    } else {
-                        // If paid, we need to check if purchased. 
-                        // This info should ideally come from backend (e.g. video.hasAccess)
-                        // For this demo, we'll default to false for paid videos if not owner
-                        setHasAccess(false);
-                    }
-                } else {
+                // Get signed URL
+                try {
+                    const { url } = await getSignedUrl(id);
+                    setSignedUrl(url);
                     setHasAccess(true);
+                } catch (err) {
+                    if (err instanceof AxiosError) {
+                        if (err.response?.status === 403) {
+                            console.log('No access');
+                            setHasAccess(false);
+                        } else if (err.response?.status === 404) {
+                            setError('Video not found');
+                            return;
+                        }
+                    }
+                    console.error('Error fetching signed URL:', err);
                 }
 
                 // If processing, poll every 3 seconds
@@ -122,7 +121,7 @@ export default function VideoPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
                     <div className="rounded-lg overflow-hidden border bg-black relative">
-                        {!hasAccess && (video.isPaid || video.isSubscriptionOnly) ? (
+                        {!hasAccess ? (
                             <div className="absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center text-center p-6">
                                 <Lock className="w-16 h-16 text-primary mb-4" />
                                 <h2 className="text-2xl font-bold text-white mb-2">
@@ -144,7 +143,7 @@ export default function VideoPage() {
 
                         {video.status === 'completed' ? (
                             <VideoPlayer
-                                src={hasAccess ? video.url : ''} // Don't load URL if no access
+                                src={signedUrl || ''} // Use signed URL
                                 poster={video.thumbnail}
                             />
                         ) : video.status === 'failed' ? (
@@ -165,7 +164,7 @@ export default function VideoPage() {
                                 </div>
                                 <h3 className="text-xl font-semibold mb-2">Processing Video</h3>
                                 <p className="text-sm text-muted-foreground max-w-md mb-6">
-                                    We're preparing your video for playback. This may take a few minutes depending on the file size.
+                                    We&apos;re preparing your video for playback. This may take a few minutes depending on the file size.
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
                                     <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
@@ -191,7 +190,14 @@ export default function VideoPage() {
                                     </p>
                                 </div>
                             </div>
-                            <AddVideoDialog videoId={video.id} />
+                            <div className="flex items-center gap-2">
+                                {!hasAccess && (video.isPaid || video.isSubscriptionOnly) && (
+                                    <Button onClick={() => setShowPayment(true)} size="sm">
+                                        {video.isSubscriptionOnly ? 'Upgrade' : `Buy for $${video.price}`}
+                                    </Button>
+                                )}
+                                <AddVideoDialog videoId={video.id} />
+                            </div>
                         </div>
 
                         <div className="bg-muted/30 p-4 rounded-lg">
@@ -227,13 +233,23 @@ export default function VideoPage() {
                     price={video.isSubscriptionOnly ? 19.99 : video.price}
                     type={
                         video.isSubscriptionOnly
-                            ? TransactionType.SUBSCRIPTION_PURCHASE
+                            ? TransactionType.SUBSCRIPTION
                             : TransactionType.VIDEO_PURCHASE
                     }
                     referenceId={video.isSubscriptionOnly ? 'PREMIUM' : video.id}
                     onSuccess={() => {
-                        setHasAccess(true);
-                        setShowPayment(false);
+                        // Reload video to get signed URL
+                        const loadVideo = async () => {
+                            try {
+                                const { url } = await getSignedUrl(id);
+                                setSignedUrl(url);
+                                setHasAccess(true);
+                                setShowPayment(false);
+                            } catch (err) {
+                                console.error('Error refreshing signed URL:', err);
+                            }
+                        };
+                        loadVideo();
                     }}
                 />
             )}

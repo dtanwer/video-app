@@ -72,12 +72,12 @@ export function PaymentModal({
 
             // 2. Open Razorpay
             const options = {
-                key: order.key,
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                 amount: order.amount,
                 currency: order.currency,
                 name: 'Video App',
                 description: title,
-                order_id: order.orderId,
+                order_id: order.id,
                 handler: async function (response: any) {
                     try {
                         // 3. Verify Payment
@@ -123,16 +123,26 @@ export function PaymentModal({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-6 text-center space-y-4">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                        <Lock className="w-8 h-8 text-primary" />
+                <div className="py-6 text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-primary/10">
+                        <Lock className="w-10 h-10 text-primary" />
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-lg">{title}</h3>
-                        <p className="text-sm text-muted-foreground">{description}</p>
+                    <div className="space-y-2 mb-8">
+                        <h3 className="font-bold text-xl">{title}</h3>
+                        <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+                            {description}
+                        </p>
                     </div>
-                    <div className="text-3xl font-bold">
-                        ${price}
+                    <div className="bg-muted/30 rounded-lg p-6 border border-border/50">
+                        <div className="text-4xl font-bold text-primary flex items-baseline justify-center gap-1">
+                            ${price}
+                            {type === TransactionType.SUBSCRIPTION && (
+                                <span className="text-lg text-muted-foreground font-normal">/mo</span>
+                            )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 font-medium uppercase tracking-wide">
+                            {type === TransactionType.SUBSCRIPTION ? 'Recurring billing' : 'One-time payment'}
+                        </p>
                     </div>
                 </div>
 

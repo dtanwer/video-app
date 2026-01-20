@@ -52,10 +52,20 @@ export const createLiveStream = async (data: { title?: string; description?: str
 
 export const getMyVideos = async (): Promise<MyVideo[]> => {
     try {
-        const response = await apiClient.get<MyVideo[]>('/video/my-videos');
+        const response = await apiClient.get<MyVideo[]>('/videos/my-videos');
         return response.data;
     } catch (error) {
         console.error('Error fetching my videos:', error);
+        throw error;
+    }
+};
+
+export const getSignedUrl = async (id: string): Promise<{ url: string }> => {
+    try {
+        const response = await apiClient.get<{ url: string }>(`/videos/${id}/signed-url`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching signed URL:', error);
         throw error;
     }
 };
