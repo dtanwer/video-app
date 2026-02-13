@@ -12,6 +12,7 @@ import {
     Shield,
     LogOut,
     Menu,
+    Wallet as WalletIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,6 +46,12 @@ export function Sidebar({ className }: SidebarProps) {
             active: pathname === '/dashboard/profile',
         },
         {
+            href: '/dashboard/wallet',
+            label: 'Wallet',
+            icon: WalletIcon,
+            active: pathname === '/dashboard/wallet',
+        },
+        {
             href: '/dashboard/settings',
             label: 'Settings',
             icon: Settings,
@@ -62,10 +69,10 @@ export function Sidebar({ className }: SidebarProps) {
     }
 
     const SidebarContent = () => (
-        <div className="space-y-4 py-4 flex flex-col h-full bg-slate-900 text-white">
+        <div className="space-y-4 py-4 flex flex-col h-full bg-card text-card-foreground border-r">
             <div className="px-3 py-2 flex-1">
                 <Link href="/dashboard" className="flex items-center pl-3 mb-14">
-                    <h1 className="text-2xl font-bold">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                         Studio
                     </h1>
                 </Link>
@@ -76,12 +83,12 @@ export function Sidebar({ className }: SidebarProps) {
                             href={route.href}
                             onClick={() => setIsOpen(false)}
                             className={cn(
-                                'text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:text-white hover:bg-white/10 rounded-lg transition',
-                                route.active ? 'text-white bg-white/10' : 'text-zinc-400'
+                                'text-sm group flex p-3 w-full justify-start font-medium cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-lg transition',
+                                route.active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
                             )}
                         >
                             <div className="flex items-center flex-1">
-                                <route.icon className={cn('h-5 w-5 mr-3', route.active ? 'text-white' : 'text-zinc-400')} />
+                                <route.icon className={cn('h-5 w-5 mr-3', route.active ? 'text-primary' : 'text-muted-foreground')} />
                                 {route.label}
                             </div>
                         </Link>
@@ -89,23 +96,23 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
             </div>
 
-            <div className="px-3 py-2 border-t border-slate-800">
+            <div className="px-3 py-2 border-t">
                 <div className="flex items-center gap-x-3 mb-4 px-3">
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={user?.avatar} />
-                        <AvatarFallback className="bg-slate-800 text-white">
+                        <AvatarFallback>
                             {user?.name?.[0]?.toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                        <p className="text-sm font-medium text-white">{user?.name}</p>
-                        <p className="text-xs text-zinc-400 truncate w-[140px]">{user?.email}</p>
+                        <p className="text-sm font-medium">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate w-[140px]">{user?.email}</p>
                     </div>
                 </div>
                 <Button
                     onClick={logout}
                     variant="ghost"
-                    className="w-full justify-start text-zinc-400 hover:text-white hover:bg-white/10"
+                    className="w-full justify-start text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 >
                     <LogOut className="h-5 w-5 mr-3" />
                     Logout
@@ -119,17 +126,24 @@ export function Sidebar({ className }: SidebarProps) {
             {/* Mobile Sidebar */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" className="md:hidden fixed left-4 top-4 z-50" size="icon">
+                    <Button
+                        variant="ghost"
+                        className={cn(
+                            "md:hidden fixed left-4 top-[70px] z-[100]",
+                            isOpen && "hidden"
+                        )}
+                        size="icon"
+                    >
                         <Menu />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-72 bg-slate-900 border-r-slate-800">
+                <SheetContent side="left" className="p-0 w-72">
                     <SidebarContent />
                 </SheetContent>
             </Sheet>
 
             {/* Desktop Sidebar */}
-            <div className="hidden md:flex h-[calc(100vh-50px)] w-72 flex-col fixed inset-y-0 top-16 z-50">
+            <div className="hidden md:flex h-[calc(100vh-50px)] w-72 flex-col fixed inset-y-0 top-16 z-50 bg-background border-r">
                 <SidebarContent />
             </div>
         </>

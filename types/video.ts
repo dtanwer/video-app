@@ -60,6 +60,11 @@ export interface MyVideo {
   createdAt: string;
   updatedAt: string;
   views: number;
+  isPaid: boolean;
+  price: number;
+  isPublished: boolean;
+  isSubscriptionOnly: boolean;
+  previewDuration?: number;
 }
 
 export interface StreamQuality {
@@ -108,4 +113,14 @@ export interface HealthCheckResponse {
   };
   activeStreams: number;
   uptime: number;
+}
+
+export interface MyVideoResponse {
+  data: MyVideo[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

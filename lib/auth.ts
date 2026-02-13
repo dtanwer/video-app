@@ -18,6 +18,12 @@ export interface User {
   subscriptionPlan: 'FREE' | 'BASIC' | 'PREMIUM';
   subscriptionExpiry?: string;
   razorpayCustomerId?: string;
+  phoneNumber?: string;
+  bankDetails?: {
+    accountNumber: string;
+    ifsc: string;
+    beneficiaryName: string;
+  };
 }
 
 export interface AuthTokens {
@@ -117,6 +123,12 @@ export const authApi = {
     name?: string;
     bio?: string;
     avatar?: string;
+    phoneNumber?: string;
+    bankDetails?: {
+      accountNumber: string;
+      ifsc: string;
+      beneficiaryName: string;
+    };
   }): Promise<User> => {
     const response = await apiClient.put('/users/me', data);
     return response.data;
